@@ -1,0 +1,12 @@
+.next
+
+# dependencies
+node_modules
+
+# build output
+out
+build
+dist
+
+# Ignore all HTML files:
+**/*.html

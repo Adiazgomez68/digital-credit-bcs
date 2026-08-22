@@ -14,9 +14,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "public/**",
   ]),
-  // Accessibility plugin recommended rules to ensure that our web app is accessible to all users
-  eslintPluginJsxA11y(),
+  {
+    rules: eslintPluginJsxA11y.flatConfigs.recommended.rules,
+  },
 ]);
 
 export default eslintConfig;
