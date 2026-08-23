@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# planning docs (BCS coaching material) — not part of the deliverable, see docs/project-context.md
+/docs
