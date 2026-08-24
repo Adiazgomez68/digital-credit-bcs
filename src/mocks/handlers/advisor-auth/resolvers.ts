@@ -1,9 +1,10 @@
+import {
+  BASE_COOKIE_ATTRIBUTES,
+  MAX_SESSION_SECONDS,
+  SESSION_COOKIE,
+} from "@/constants/session";
 import { HttpResponse } from "msw";
 import { sessionStore } from "./session-store";
-
-const SESSION_COOKIE = "bcs_advisor_session";
-const MAX_SESSION_SECONDS = 60;
-const BASE_COOKIE_ATTRIBUTES = "Path=/admin-portal; Secure; SameSite=Lax";
 
 function buildSessionCookieHeader(token: string): Headers {
   const headers = new Headers();

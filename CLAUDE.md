@@ -30,7 +30,7 @@ Husky + lint-staged run `eslint --fix` and `prettier --write` on staged `*.ts`/`
 ### Two route modules, one codebase
 
 - **Public client module**: `/` (route group `(marketing)`), `/credit/*` (multi-step application wizard), `/check-application`, `/my-applications*`. No auth.
-- **Internal advisor portal**: `/admin-portal/*`. Deliberately *not linked* from anywhere in the public site. Will be protected by `middleware.ts` (matcher `/admin-portal/:path*`) checking a simulated session cookie (`bcs_advisor_session`) — not yet implemented.
+- **Internal advisor portal**: `/advisor-portal/*`. Deliberately *not linked* from anywhere in the public site. Protected by `src/proxy.ts` (matcher `/advisor-portal/:path*` — this Next.js version renamed `middleware` to `proxy`, see `AGENTS.md`) checking a simulated session cookie (`bcs_advisor_session`).
 
 Both modules share the same `types/`, `store/`, `providers/`, and `components/ui/`. Full route table and per-route status (exists / scaffolded / to-create) is in `docs/project-context.md`.
 
@@ -46,7 +46,7 @@ Server state (the application record itself, offers, events) goes through TanSta
 
 `src/types/application.ts` and `src/types/store.ts` already establish the real English naming used throughout the code (`Application`, `ApplicationStatus`, `Channel`, `OfferSimulated`, `ApplicationEvent`, `ApplicationState.step`, `goToStep`, etc.). When the planning docs use Spanish domain terms or different English names than what's already in these files, the code wins — see the translation table in `docs/project-context.md` rather than inventing new names.
 
-Key state machine: `ApplicationStatus` = `draft → simulation_realized | simulation_rejected → pending_validation → finalized`, with `abandoned` reachable from most non-terminal states. Editing rights are status- *and actor*-gated: `draft` → client only; `pending_validation` → advisor only (from `/admin-portal`); `finalized`/`abandoned` → terminal for everyone. This rule must be enforced in code, not just hidden via UI — see `docs/hoja-de-ruta.md` §5 for the full diagram and the "one active draft per document" business rule (`POST /applications` returns the existing draft instead of creating a duplicate).
+Key state machine: `ApplicationStatus` = `draft → simulation_realized | simulation_rejected → pending_validation → finalized`, with `abandoned` reachable from most non-terminal states. Editing rights are status- *and actor*-gated: `draft` → client only; `pending_validation` → advisor only (from `/advisor-portal`); `finalized`/`abandoned` → terminal for everyone. This rule must be enforced in code, not just hidden via UI — see `docs/hoja-de-ruta.md` §5 for the full diagram and the "one active draft per document" business rule (`POST /applications` returns the existing draft instead of creating a duplicate).
 
 ### Mocking and traceability
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { REFRESH_BUFFER_MS } from "@/constants/session";
 import { useAdvisorRefresh } from "@/hooks/use-advisor-auth";
 import type { AdvisorSessionResponse } from "@/types/advisor";
 import {
@@ -10,9 +11,6 @@ import {
   useMemo,
   useState,
 } from "react";
-
-// Refresh a bit before the token actually expires, not exactly at the deadline.
-const REFRESH_BUFFER_MS = 10_000;
 
 interface AdvisorSession {
   token: string;
