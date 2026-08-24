@@ -2,11 +2,15 @@ import { HttpResponse } from "msw";
 import { sessionStore } from "./session-store";
 
 const SESSION_COOKIE = "bcs_advisor_session";
-const COOKIE_ATTRIBUTES = "Path=/admin-portal; HttpOnly; Secure; SameSite=Lax";
+const MAX_SESSION_SECONDS = 60;
+const BASE_COOKIE_ATTRIBUTES = "Path=/admin-portal; Secure; SameSite=Lax";
 
 function buildSessionCookieHeader(token: string): Headers {
   const headers = new Headers();
-  headers.set("Set-Cookie", `${SESSION_COOKIE}=${token}; ${COOKIE_ATTRIBUTES}`);
+  headers.set(
+    "Set-Cookie",
+    `${SESSION_COOKIE}=${token}; Max-Age=${MAX_SESSION_SECONDS}; ${BASE_COOKIE_ATTRIBUTES}`,
+  );
   return headers;
 }
 
@@ -21,7 +25,7 @@ export async function loginResolver({ request }: { request: Request }) {
     const refreshToken = sessionStore.issueRefreshToken();
 
     return HttpResponse.json(
-      { token, refreshToken },
+      { token, refreshToken, expiresIn: MAX_SESSION_SECONDS },
       { status: 200, headers: buildSessionCookieHeader(token) },
     );
   }
@@ -43,7 +47,7 @@ export async function refreshResolver({ request }: { request: Request }) {
     const refreshToken = sessionStore.issueRefreshToken();
 
     return HttpResponse.json(
-      { token, refreshToken },
+      { token, refreshToken, expiresIn: MAX_SESSION_SECONDS },
       { status: 200, headers: buildSessionCookieHeader(token) },
     );
   }
@@ -58,7 +62,7 @@ export async function logoutResolver() {
   const headers = new Headers();
   headers.set(
     "Set-Cookie",
-    `${SESSION_COOKIE}=; Path=/admin-portal; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
+    `${SESSION_COOKIE}=; Max-Age=0; ${BASE_COOKIE_ATTRIBUTES}`,
   );
 
   return HttpResponse.json(
