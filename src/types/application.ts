@@ -9,6 +9,7 @@ export type ApplicationStatus =
 export type Channel = "assisted" | "unassisted";
 
 export type Actor = "client" | "advisor" | "system";
+export type HttpActor = Exclude<Actor, "system">;
 
 export interface Application {
   id: string;

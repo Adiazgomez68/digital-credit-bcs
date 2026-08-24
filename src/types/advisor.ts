@@ -6,4 +6,5 @@ export interface AdvisorSessionPayload {
 export interface AdvisorSessionResponse {
   token: string;
   refreshToken: string;
+  expiresIn: number;
 }

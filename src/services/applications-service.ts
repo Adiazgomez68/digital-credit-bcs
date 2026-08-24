@@ -6,10 +6,9 @@ import type {
   ApplicationEvent,
   ApplicationListFilters,
   CreateApplicationPayload,
+  HttpActor,
   UpdateApplicationPayload,
 } from "@/types/application";
-
-type Actor = "client" | "advisor";
 
 export async function createApplication(payload: CreateApplicationPayload) {
   const { data, status } = await apiClient.post<Application>(
@@ -41,7 +40,7 @@ export async function getApplication(id: string) {
 export async function updateApplication(
   id: string,
   payload: UpdateApplicationPayload,
-  actor: Actor,
+  actor: HttpActor,
 ) {
   const { data } = await apiClient.patch<Application>(
     ENDPOINTS.APPLICATIONS.UPDATE(id),
@@ -73,7 +72,7 @@ export async function simulateOffer(id: string) {
   return data;
 }
 
-export async function finalizeApplication(id: string, actor: Actor) {
+export async function finalizeApplication(id: string, actor: HttpActor) {
   const { data } = await apiClient.post<Application>(
     ENDPOINTS.APPLICATIONS.FINALIZE(id),
     undefined,
@@ -86,7 +85,7 @@ export async function finalizeApplication(id: string, actor: Actor) {
 export async function abandonApplication(
   id: string,
   payload: AbandonApplicationPayload,
-  actor: Actor,
+  actor: HttpActor,
 ) {
   const { data } = await apiClient.post<Application>(
     ENDPOINTS.APPLICATIONS.ABANDON(id),
