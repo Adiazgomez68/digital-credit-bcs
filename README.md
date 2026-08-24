@@ -53,19 +53,19 @@ No hay backend real que levantar: todo el API lo sirve MSW interceptando `fetch`
 
 ## Contratos de API (usados por el mock, mismo contrato esperado de un backend real)
 
-| Método | Ruta | Actor | Descripción |
-|---|---|---|---|
-| `POST` | `/api/applications` | client | Crea solicitud o devuelve el borrador existente para ese documento (`200` si ya existía, `201` si es nueva) |
-| `GET` | `/api/applications` | advisor | Lista completa (portal de asesor) |
-| `GET` | `/api/applications/:id` | client/advisor | Detalle de una solicitud |
-| `PATCH` | `/api/applications/:id` | client (draft) / advisor (pending_validation) | Actualiza datos; `409` si el estado/actor no corresponde |
-| `POST` | `/api/applications/:id/simulate-offer` | client | Corre la regla de capacidad de pago, devuelve oferta viable/no viable/error técnico |
-| `POST` | `/api/applications/:id/accept-alternative-offer` | client | Acepta la oferta alternativa cuando la simulación inicial no fue viable |
-| `POST` | `/api/applications/:id/submit-for-review` | client | Pasa la solicitud a `pending_validation` (canal asistido) |
-| `POST` | `/api/applications/:id/finalize` | client (unassisted) / advisor | Cierra la solicitud |
-| `POST` | `/api/applications/:id/abandon` | client/advisor | Marca como `abandoned` con motivo |
-| `GET` | `/api/applications/:id/events` | client/advisor | Historial de eventos de trazabilidad |
-| `POST` | `/api/auth/advisor-login` | advisor | Login simulado del portal interno |
+| Método  | Ruta                                             | Actor                                         | Descripción                                                                                                 |
+| ------- | ------------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `POST`  | `/api/applications`                              | client                                        | Crea solicitud o devuelve el borrador existente para ese documento (`200` si ya existía, `201` si es nueva) |
+| `GET`   | `/api/applications`                              | advisor                                       | Lista completa (portal de asesor)                                                                           |
+| `GET`   | `/api/applications/:id`                          | client/advisor                                | Detalle de una solicitud                                                                                    |
+| `PATCH` | `/api/applications/:id`                          | client (draft) / advisor (pending_validation) | Actualiza datos; `409` si el estado/actor no corresponde                                                    |
+| `POST`  | `/api/applications/:id/simulate-offer`           | client                                        | Corre la regla de capacidad de pago, devuelve oferta viable/no viable/error técnico                         |
+| `POST`  | `/api/applications/:id/accept-alternative-offer` | client                                        | Acepta la oferta alternativa cuando la simulación inicial no fue viable                                     |
+| `POST`  | `/api/applications/:id/submit-for-review`        | client                                        | Pasa la solicitud a `pending_validation` (canal asistido)                                                   |
+| `POST`  | `/api/applications/:id/finalize`                 | client (unassisted) / advisor                 | Cierra la solicitud                                                                                         |
+| `POST`  | `/api/applications/:id/abandon`                  | client/advisor                                | Marca como `abandoned` con motivo                                                                           |
+| `GET`   | `/api/applications/:id/events`                   | client/advisor                                | Historial de eventos de trazabilidad                                                                        |
+| `POST`  | `/api/auth/advisor-login`                        | advisor                                       | Login simulado del portal interno                                                                           |
 
 Todas las mutaciones esperan headers `X-Correlation-Id` y `X-Actor`, que el `apiClient` (`src/lib/http-client`) agrega automáticamente.
 
@@ -75,7 +75,7 @@ Todas las mutaciones esperan headers `X-Correlation-Id` y `X-Actor`, que el `api
 
 ## Sobre el uso de IA en este proyecto
 
-Usé Claude Code como asistente durante todo el desarrollo, con una metodología concreta: yo defino la arquitectura y las reglas de negocio (ver `docs/hoja-de-ruta.md` y `docs/project-context.md`, que escribí antes de tocar código), y el agente implementa contra ese contrato — nunca al revés. Cada cambio lo validé corriendo la app en vivo en el navegador (no solo confiando en que compilara), revisando `pnpm lint`/`tsc --noEmit`/`pnpm test`, y en varios casos reproduciendo bugs reportados paso a paso con DevTools antes de aceptar un diagnóstico. Un ejemplo concreto: un bug de "se queda cargando" en el paso de simulación se diagnosticó inspeccionando directamente el caché de TanStack Query y el fiber de React en vivo, no adivinando — y la primera hipótesis (un problema de timeout en el mock) se descartó y revirtió cuando la evidencia no la sostuvo.
+Usé Claude Code como asistente durante todo el desarrollo, con una metodología concreta: yo defino la arquitectura y las reglas de negocio, y el agente implementa contra ese contrato — nunca al revés. Cada cambio lo validé corriendo la app en vivo en el navegador (no solo confiando en que compilara), revisando `pnpm lint`/`tsc --noEmit`/`pnpm test`, y en varios casos reproduciendo bugs reportados paso a paso con DevTools antes de aceptar un diagnóstico. Un ejemplo concreto: un bug de "se queda cargando" en el paso de simulación se diagnosticó inspeccionando directamente el caché de TanStack Query y el fiber de React en vivo, no adivinando — y la primera hipótesis (un problema de timeout en el mock) se descartó y revirtió cuando la evidencia no la sostuvo.
 
 ---
 
@@ -86,35 +86,31 @@ Usé Claude Code como asistente durante todo el desarrollo, con una metodología
 **Como** solicitante de crédito, **quiero** que cada paso del wizard muestre un estado de carga claro mientras se resuelve una petición, y que ese estado siempre transicione a un resultado (éxito, error o el siguiente paso), **para** no quedarme con la duda de si mi solicitud avanzó o no.
 
 **Criterios de aceptación:**
-- Cada paso que depende de datos del servidor (`useFetchApplicationById`) muestra un skeleton mientras `isPending`, nunca contenido vacío o desalineado.
+
+- Cada paso que depende de datos del servidor muestra un skeleton mientras `isPending`, nunca contenido vacío o desalineado.
 - El resultado de una mutación (crear, actualizar, simular oferta) se refleja en el mismo request-response cycle: no hay estados donde la petición ya resolvió pero la UI sigue esperando.
 - Todo estado de carga tiene, como máximo, dos desenlaces posibles: el contenido resuelto, o un estado de error con acción de reintentar — nunca un tercer estado indefinido.
 - Falla de red o del mock (4xx/5xx) siempre se traduce a un mensaje visible con opción de reintentar o volver al inicio, nunca a una pantalla que no cambia.
-
-**Consideraciones de seguridad:** los estados de carga y error nunca filtran detalles internos (stack traces, payloads crudos del backend) al usuario — el `ApiError` se normaliza a un mensaje genérico en español antes de mostrarse.
 
 ### 2. Formularios / validaciones — Datos financieros del paso 2
 
 **Como** solicitante, **quiero** que el formulario de ingresos, egresos y valor solicitado valide mis datos antes de dejarme avanzar, y que los montos se vean formateados como pesos mientras escribo, **para** no cometer errores de digitación que afecten mi simulación.
 
 **Criterios de aceptación:**
-- `income`, `expenses` y `amountRequested` se muestran formateados con separador de miles en tiempo real (`formatThousands`/`parseThousands`), sin symbol de moneda embebido en el valor (el `$` es solo visual).
-- `amountRequested` exige un mínimo de $1.000.000; `income` exige ser mayor a cero; ninguno acepta valores negativos o no numéricos.
-- El checkbox de tratamiento de datos personales (Ley 1581 de 2012) es obligatorio para continuar, y muestra un `FieldError` explícito si se intenta avanzar sin marcarlo — no solo un botón deshabilitado sin explicación.
-- El campo "Destino del crédito" está fijo en "Libre destino" y deshabilitado, porque el producto no ofrece otra opción — evita que el usuario pierda tiempo en una decisión que no existe.
-- Los valores se validan con Zod antes de tocar la red; ningún request sale con datos que ya sabemos inválidos en el cliente.
 
-**Consideraciones de seguridad:** la validación de cliente es una ayuda de UX, no la barrera real — el mock revalida `income`/`expenses`/`amountRequested` en el resolver de `simulate-offer` antes de calcular la oferta, y un backend real debe hacer lo mismo (nunca confiar en que el frontend ya filtró los datos).
+- Los campos del formulario donde se ingresan valores en pesos se muestran formateados con separador de miles en tiempo real, sin símbolo de moneda embebido en el valor (el `$` es solo visual).
+- El monto solicitado exige un mínimo de $1.000.000; el ingreso exige ser mayor a cero; ninguno acepta valores negativos o no numéricos.
+- El checkbox de tratamiento de datos personales es obligatorio para continuar, y muestra un error explícito si se intenta avanzar sin marcarlo — no solo un botón deshabilitado sin explicación.
+- El campo "Destino del crédito" está fijo en "Libre destino" y deshabilitado, porque el producto no ofrece otra opción — evita que el usuario pierda tiempo en una decisión que no existe.
 
 ### 3. Integración frontend-backend — Retomar una solicitud por documento
 
-**Como** solicitante que abandonó el proceso a mitad de camino, **quiero** que al volver a solicitar con mi mismo número de documento el sistema me lleve exactamente al paso donde quedé, **para** no tener que volver a llenar todo desde cero.
+**Como** solicitante que decidió guardar y salir del proceso a mitad de camino, **quiero** que al volver a solicitar con mi mismo número de documento el sistema me lleve exactamente al paso donde quedé, **para** no tener que volver a llenar todo desde cero.
 
 **Criterios de aceptación:**
-- `POST /applications` con un documento que ya tiene un borrador activo devuelve `200` con la solicitud existente (no `201` ni un duplicado).
-- El frontend usa `lastRoute` de la solicitud devuelta para redirigir al paso correcto, con un query param (`?resumed=1`) que permite mostrarle al usuario que está retomando, no empezando de nuevo.
-- Los datos sensibles del borrador (ingresos, egresos, etc.) se recuperan siempre desde el servidor vía `useQuery` y se inyectan al formulario con la prop `values`, nunca desde lo que haya quedado en `localStorage`.
-- Si el documento no tiene ningún borrador, el flujo crea uno nuevo (`201`) y sigue el camino normal.
-- Toda la operación queda registrada como un `ApplicationEvent` con su `correlationId`, trazable después desde el portal de asesor.
 
-**Consideraciones de seguridad:** el `id` de la solicitud en Zustand/`localStorage` es solo un puntero de navegación — nunca se usa como mecanismo de autorización por sí solo. Cualquier operación que dependa de quién puede hacer qué (editar, aprobar, finalizar) se valida en el backend según `status` + `actor` (header `X-Actor`), no según lo que el cliente diga que es. El número de documento no se expone en la URL en texto plano más allá de lo estrictamente necesario para el flujo de retomar solicitud.
+- Al solicitar con un documento que ya tiene un borrador activo devuelve la solicitud existente (no crea una nueva duplicada).
+- El frontend usa la última ruta del borrador de la solicitud devuelta para redirigir al paso correcto, permitiendo mostrarle al usuario que está retomando, no empezando de nuevo.
+- Los datos sensibles del borrador (ingresos, egresos, etc.) se recuperan siempre desde el servidor y se inyectan al formulario, nunca desde lo que haya quedado en un estado intermedio como un state local.
+- Si el documento no tiene ningún borrador, el flujo crea uno nuevo y sigue el camino normal.
+- Toda la operación queda registrada como un evento de la solicitud con su identificador de correlación, trazable después desde el portal de asesor.
