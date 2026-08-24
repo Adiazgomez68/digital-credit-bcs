@@ -1,29 +1,32 @@
 import { cn } from "@/lib/utils";
 
 type ViewSize = "narrow" | "form" | "wide";
+type ViewTag = "div" | "section";
 
-// Tailwind's own max-w-* scale, not raw pixels: xl≈560, 2xl≈680, 6xl≈1160.
 const SIZE_MAX_WIDTH: Record<ViewSize, string> = {
   narrow: "max-w-xl",
   form: "max-w-2xl",
-  wide: "max-w-6xl",
+  wide: "max-w-[1180px]",
 };
 
 interface ViewProps {
+  as?: ViewTag;
+  id?: string;
   size?: ViewSize;
   className?: string;
   children: React.ReactNode;
 }
 
-// Keeps the same centered max-width + padding across every screen; only the
-// width tier changes (a form step vs. a table/dashboard vs. a confirmation).
 export function View({
+  as: Tag = "div",
+  id,
   size = "form",
   className,
   children,
 }: Readonly<ViewProps>) {
   return (
-    <div
+    <Tag
+      id={id}
       className={cn(
         "mx-auto w-full px-10 py-12",
         SIZE_MAX_WIDTH[size],
@@ -31,6 +34,6 @@ export function View({
       )}
     >
       {children}
-    </div>
+    </Tag>
   );
 }
