@@ -1,5 +1,6 @@
 import {
   abandonApplication,
+  acceptAlternativeOffer,
   createApplication,
   finalizeApplication,
   getApplication,
@@ -11,6 +12,7 @@ import {
 } from "@/services/applications-service";
 import type {
   AbandonApplicationPayload,
+  Application,
   ApplicationListFilters,
   CreateApplicationPayload,
   HttpActor,
@@ -18,13 +20,16 @@ import type {
 } from "@/types/application";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-function useInvalidateApplicationQueries() {
+// Seeds the query cache directly instead of just invalidating, to skip the loading flash on the next step.
+function useSyncApplicationQueries() {
   const queryClient = useQueryClient();
 
-  return (id: string) => {
+  return (application: Application) => {
+    queryClient.setQueryData(["application", application.id], application);
     queryClient.invalidateQueries({ queryKey: ["applications"] });
-    queryClient.invalidateQueries({ queryKey: ["application", id] });
-    queryClient.invalidateQueries({ queryKey: ["application-events", id] });
+    queryClient.invalidateQueries({
+      queryKey: ["application-events", application.id],
+    });
   };
 }
 
@@ -39,6 +44,7 @@ export function useFetchApplicationById(id: string) {
   return useQuery({
     queryKey: ["application", id],
     queryFn: () => getApplication(id),
+    enabled: Boolean(id),
   });
 }
 
@@ -50,18 +56,18 @@ export function useFetchApplicationEvents(id: string) {
 }
 
 export function useCreateApplication() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["create-application"],
     mutationFn: (payload: CreateApplicationPayload) =>
       createApplication(payload),
-    onSuccess: ({ application }) => invalidate(application.id),
+    onSuccess: ({ application }) => sync(application),
   });
 }
 
 export function useUpdateApplication() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["update-application"],
@@ -74,43 +80,53 @@ export function useUpdateApplication() {
       payload: UpdateApplicationPayload;
       actor: HttpActor;
     }) => updateApplication(id, payload, actor),
-    onSuccess: (_, { id }) => invalidate(id),
+    onSuccess: (application) => sync(application),
   });
 }
 
 export function useSubmitApplicationForReview() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["submit-application-for-review"],
     mutationFn: (id: string) => submitApplicationForReview(id),
-    onSuccess: (_, id) => invalidate(id),
+    onSuccess: (application) => sync(application),
   });
 }
 
 export function useSimulateOffer() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["simulate-offer"],
     mutationFn: (id: string) => simulateOffer(id),
-    onSuccess: (_, id) => invalidate(id),
+    onSuccess: (application) => sync(application),
+  });
+}
+
+export function useAcceptAlternativeOffer() {
+  const sync = useSyncApplicationQueries();
+
+  return useMutation({
+    mutationKey: ["accept-alternative-offer"],
+    mutationFn: (id: string) => acceptAlternativeOffer(id),
+    onSuccess: (application) => sync(application),
   });
 }
 
 export function useFinalizeApplication() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["finalize-application"],
     mutationFn: ({ id, actor }: { id: string; actor: HttpActor }) =>
       finalizeApplication(id, actor),
-    onSuccess: (_, { id }) => invalidate(id),
+    onSuccess: (application) => sync(application),
   });
 }
 
 export function useAbandonApplication() {
-  const invalidate = useInvalidateApplicationQueries();
+  const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["abandon-application"],
@@ -123,6 +139,6 @@ export function useAbandonApplication() {
       payload: AbandonApplicationPayload;
       actor: HttpActor;
     }) => abandonApplication(id, payload, actor),
-    onSuccess: (_, { id }) => invalidate(id),
+    onSuccess: (application) => sync(application),
   });
 }

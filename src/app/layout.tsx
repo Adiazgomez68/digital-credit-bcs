@@ -1,6 +1,4 @@
 import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
-import { MarketingNav } from "@/components/layout/marketing-nav";
 import { TanstackProvider } from "@/providers/tanstack-provider";
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
@@ -24,12 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <TanstackProvider>
         <body className="min-h-full flex flex-col">
-          <Header>
-            <MarketingNav />
-          </Header>
-
-          {children}
-
+          <div className="flex-1">{children}</div>
           <Footer />
         </body>
       </TanstackProvider>

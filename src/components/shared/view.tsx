@@ -6,7 +6,7 @@ type ViewTag = "div" | "section";
 const SIZE_MAX_WIDTH: Record<ViewSize, string> = {
   narrow: "max-w-xl",
   form: "max-w-2xl",
-  wide: "max-w-[1180px]",
+  wide: "max-w-295",
 };
 
 interface ViewProps {
