@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatThousands, parseThousands } from "@/lib/format";
 
 import {
   AMOUNT_MAX,
@@ -44,17 +44,26 @@ export function SimulatorForm({
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Monto que necesitas</FieldLabel>
 
-              <Input
-                id={field.name}
-                name={field.name}
-                type="number"
-                inputMode="numeric"
-                step={100_000}
-                value={field.value}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.valueAsNumber)}
-                aria-invalid={fieldState.invalid}
-              />
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-muted-foreground">
+                  $
+                </span>
+
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className="pl-8"
+                  value={formatThousands(field.value)}
+                  onBlur={field.onBlur}
+                  onChange={(event) =>
+                    field.onChange(parseThousands(event.target.value))
+                  }
+                  aria-invalid={fieldState.invalid}
+                />
+              </div>
 
               <FieldDescription className="text-xs">
                 Montos disponibles entre {formatCurrency(AMOUNT_MIN)} y{" "}

@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/format";
 
 export const AMOUNT_MIN = 1_000_000;
 export const AMOUNT_MAX = 50_000_000;
-export const DEFAULT_AMOUNT = 12_000_000;
+export const DEFAULT_AMOUNT = 1_000_000;
 export const DEFAULT_TERM_MONTHS = 24;
 export const TERM_OPTIONS_MONTHS = [12, 24, 36, 48, 60] as const;
 

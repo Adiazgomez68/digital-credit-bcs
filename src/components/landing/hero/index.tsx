@@ -35,13 +35,6 @@ export function Hero() {
           >
             Solicitar crédito
           </Link>
-
-          <Link
-            href="/check-application"
-            className={cn(buttonVariants({ variant: "ghost", size: "xl" }))}
-          >
-            Ya tengo una solicitud →
-          </Link>
         </div>
       </div>
 

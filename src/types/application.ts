@@ -59,6 +59,7 @@ export type UpdateApplicationPayload = Partial<
     | "termMonths"
     | "loanPurpose"
     | "privacyPolicy"
+    | "lastRoute"
   >
 >;
 
@@ -66,11 +67,18 @@ export interface AbandonApplicationPayload {
   reason: string;
 }
 
+export interface AlternativeOffer {
+  amountRequested: number;
+  termMonths: number;
+  estimatedFee: number;
+}
+
 export interface OfferSimulated {
   result: "success" | "not_viable" | "technical_error";
   estimatedFee?: number;
   monthlyRate?: number;
   reasonNoViable?: string;
+  alternativeOffer?: AlternativeOffer;
 }
 
 export type ApplicationEventType =
@@ -80,6 +88,7 @@ export type ApplicationEventType =
   | "offer_simulated_success"
   | "offer_simulated_not_viable"
   | "offer_simulated_technical_error"
+  | "alternative_offer_accepted"
   | "application_finalized"
   | "application_abandoned";
 

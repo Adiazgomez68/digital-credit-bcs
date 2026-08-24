@@ -1,6 +1,7 @@
 import { http } from "msw";
 import {
   abandonApplicationResolver,
+  acceptAlternativeOfferResolver,
   createApplicationResolver,
   finalizeApplicationResolver,
   getApplicationByIdResolver,
@@ -26,6 +27,10 @@ export const applicationsHandlers = [
   http.post<{ id: string }>(
     "/api/applications/:id/simulate-offer",
     simulateOfferResolver,
+  ),
+  http.post<{ id: string }>(
+    "/api/applications/:id/accept-alternative-offer",
+    acceptAlternativeOfferResolver,
   ),
   http.post<{ id: string }>(
     "/api/applications/:id/finalize",

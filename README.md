@@ -20,6 +20,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Supuestos y limitaciones conocidas
+
+**El mock de backend no sobrevive a un recargue de página, y eso es a propósito.** El "backend" de este proyecto es MSW corriendo en memoria del navegador — un `Map`, sin base de datos real detrás. Lo único que persiste en `localStorage` es el puntero de navegación del cliente (`id`, `channel`, `step`); nunca datos sensibles de la solicitud (documento, ingresos, egresos, etc.). Es el mismo criterio de seguridad que aplico en todo el flujo: si algo puede identificar o comprometer al solicitante, no sale del backend.
+
+La consecuencia directa: la regla de "un borrador activo por documento" y el mecanismo de retomar la solicitud ingresando la cédula (`POST /applications` devuelve el borrador existente en vez de crear uno duplicado, y el frontend te lleva de vuelta al paso exacto donde quedaste) están implementados y probados, y funcionan correctamente dentro de una misma sesión de navegador. Lo que no van a sobrevivir es a un F5 — porque en ese momento el mock se reinicializa desde cero y pierde todo lo que tenía en memoria.
+
+No "arreglé" esto simulando persistencia en `localStorage`, porque eso implicaría sacar datos de la solicitud del backend hacia el navegador, que es justo lo que este diseño evita. En producción, con una base de datos real detrás, este mismo código funcionaría igual sin esta limitación — la persistencia dejaría de depender de que el mock siga vivo en memoria.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

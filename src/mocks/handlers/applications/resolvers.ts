@@ -2,6 +2,7 @@ import { db } from "@/mocks/db";
 import {
   AbandonApplicationPayload,
   Actor,
+  AlternativeOffer,
   Application,
   ApplicationEvent,
   ApplicationEventType,
@@ -18,6 +19,8 @@ const DEBT_TO_INCOME_THRESHOLD = 0.35;
 const MONTHLY_RATE = 0.018;
 // Reproducible technical-error hook.
 const TECHNICAL_ERROR_TRIGGER_AMOUNT = 999_999_999;
+// Below this, an alternative offer wouldn't be a meaningful amount to offer.
+const MIN_ALTERNATIVE_AMOUNT = 1_000_000;
 
 function buildEvent(
   applicationId: string,
@@ -54,6 +57,26 @@ function estimateMonthlyFee(
 ): number {
   const rate = MONTHLY_RATE;
   return (amountRequested * rate) / (1 - Math.pow(1 + rate, -termMonths));
+}
+
+// When a simulation isn't viable, offers the largest amount (same term) that
+// would fit the client's payment capacity, rounded down to a clean figure.
+function computeAlternativeOffer(
+  paymentCapacity: number,
+  termMonths: number,
+): AlternativeOffer | undefined {
+  const rate = MONTHLY_RATE;
+  const maxAmount =
+    (paymentCapacity * (1 - Math.pow(1 + rate, -termMonths))) / rate;
+  const amountRequested = Math.floor(maxAmount / 100_000) * 100_000;
+
+  if (amountRequested < MIN_ALTERNATIVE_AMOUNT) return undefined;
+
+  return {
+    amountRequested,
+    termMonths,
+    estimatedFee: estimateMonthlyFee(amountRequested, termMonths),
+  };
 }
 
 export async function createApplicationResolver({
@@ -231,6 +254,7 @@ export async function submitApplicationForReviewResolver({
   const correlationId = getCorrelationId(request, application);
   const updated = db.updateApplication(application.id, {
     status: "pending_validation",
+    lastRoute: "/credit/confirmation",
   });
   db.insertEvent(
     buildEvent(
@@ -306,6 +330,7 @@ export async function simulateOfferResolver({
     : {
         result: "not_viable",
         reasonNoViable: "La cuota estimada supera tu capacidad de pago",
+        alternativeOffer: computeAlternativeOffer(paymentCapacity, termMonths),
       };
 
   const nextStatus: ApplicationStatus = isViable
@@ -315,12 +340,68 @@ export async function simulateOfferResolver({
   const updated = db.updateApplication(application.id, {
     status: nextStatus,
     offer,
+    lastRoute: isViable ? "/credit/summary" : application.lastRoute,
   });
 
   db.insertEvent(
     buildEvent(
       application.id,
       isViable ? "offer_simulated_success" : "offer_simulated_not_viable",
+      "client",
+      correlationId,
+    ),
+  );
+
+  return HttpResponse.json(updated, { status: 200 });
+}
+
+export async function acceptAlternativeOfferResolver({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { id: string };
+}) {
+  const application = db.findApplicationById(params.id);
+  if (!application) {
+    return HttpResponse.json(
+      { message: "Solicitud no encontrada" },
+      { status: 404 },
+    );
+  }
+
+  const actor = getActor(request);
+  const alternativeOffer = application.offer?.alternativeOffer;
+
+  const canAccept =
+    application.status === "simulation_rejected" &&
+    actor === "client" &&
+    alternativeOffer != null;
+
+  if (!canAccept) {
+    return HttpResponse.json(
+      { message: "No hay una oferta alternativa disponible para aceptar" },
+      { status: 409 },
+    );
+  }
+
+  const correlationId = getCorrelationId(request, application);
+  const updated = db.updateApplication(application.id, {
+    status: "simulation_realized",
+    amountRequested: alternativeOffer.amountRequested,
+    termMonths: alternativeOffer.termMonths,
+    offer: {
+      result: "success",
+      estimatedFee: alternativeOffer.estimatedFee,
+      monthlyRate: MONTHLY_RATE,
+    },
+    lastRoute: "/credit/summary",
+  });
+
+  db.insertEvent(
+    buildEvent(
+      application.id,
+      "alternative_offer_accepted",
       "client",
       correlationId,
     ),
@@ -361,7 +442,10 @@ export async function finalizeApplicationResolver({
   }
 
   const correlationId = getCorrelationId(request, application);
-  const updated = db.updateApplication(application.id, { status: "finalized" });
+  const updated = db.updateApplication(application.id, {
+    status: "finalized",
+    lastRoute: "/credit/confirmation",
+  });
   db.insertEvent(
     buildEvent(
       application.id,
