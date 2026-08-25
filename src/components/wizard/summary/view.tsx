@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heading } from "@/components/shared/heading";
 import { KeyValueGrid, KeyValueItem } from "@/components/shared/key-value";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AbandonAction } from "@/components/wizard/abandon";
 import {
   useFinalizeApplication,
@@ -61,6 +61,7 @@ export function SummaryView({ application }: Readonly<SummaryViewProps>) {
         <CardHeader>
           <CardTitle>Datos personales</CardTitle>
         </CardHeader>
+
         <CardContent>
           <KeyValueGrid>
             <KeyValueItem
@@ -79,6 +80,7 @@ export function SummaryView({ application }: Readonly<SummaryViewProps>) {
         <CardHeader>
           <CardTitle>Datos financieros</CardTitle>
         </CardHeader>
+
         <CardContent>
           <KeyValueGrid>
             <KeyValueItem
@@ -113,12 +115,14 @@ export function SummaryView({ application }: Readonly<SummaryViewProps>) {
         <CardHeader>
           <CardTitle>Oferta simulada</CardTitle>
         </CardHeader>
+
         <CardContent>
           <div className="flex items-center justify-between rounded-lg bg-accent px-5 py-4.5">
             <div>
               <div className="text-xs text-accent-foreground/80">
                 Cuota mensual estimada
               </div>
+
               <div className="text-2xl font-semibold text-accent-foreground">
                 {formatCurrency(application.offer?.estimatedFee ?? 0)}
               </div>
@@ -128,6 +132,7 @@ export function SummaryView({ application }: Readonly<SummaryViewProps>) {
               <div className="text-xs text-accent-foreground/80">
                 Tasa efectiva
               </div>
+
               <div className="text-sm font-semibold text-accent-foreground">
                 {((application.offer?.monthlyRate ?? 0) * 100)
                   .toFixed(2)

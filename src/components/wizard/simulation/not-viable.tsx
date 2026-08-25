@@ -1,11 +1,12 @@
 import { TriangleAlert } from "lucide-react";
-import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { WEB_ROUTES } from "@/routes/web";
 import type { Application } from "@/types/application";
 
+import { useAbandonApplication } from "@/hooks/use-aplication";
+import { useApplicationStore } from "@/providers/application-store-provider";
+import { useRouter } from "next/navigation";
 import { AlternativeOfferCard } from "./alternative-offer";
 
 interface SimulationNotViableProps {
@@ -15,7 +16,30 @@ interface SimulationNotViableProps {
 export function SimulationNotViable({
   application,
 }: Readonly<SimulationNotViableProps>) {
+  const router = useRouter();
+  const resetStore = useApplicationStore((store) => store.reset);
+
+  const { mutate, isPending } = useAbandonApplication();
+
   const { offer } = application;
+
+  const goToStart = () => {
+    mutate(
+      {
+        id: application.id,
+        payload: {
+          reason: "Solicitud no viable, sin oferta alternativa",
+        },
+        actor: "client",
+      },
+      {
+        onSuccess: () => {
+          resetStore();
+          router.replace(WEB_ROUTES.CLIENT.HOME);
+        },
+      },
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,12 +70,15 @@ export function SimulationNotViable({
           offer={offer.alternativeOffer}
         />
       ) : (
-        <Link
-          href={WEB_ROUTES.CLIENT.HOME}
-          className={cn(buttonVariants({ variant: "outline" }), "self-start")}
+        <Button
+          onClick={goToStart}
+          variant="outline"
+          disabled={isPending}
+          loading={isPending}
+          className="self-start"
         >
           Volver al inicio
-        </Link>
+        </Button>
       )}
     </div>
   );

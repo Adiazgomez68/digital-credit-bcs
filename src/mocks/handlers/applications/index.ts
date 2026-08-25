@@ -7,6 +7,7 @@ import {
   getApplicationByIdResolver,
   getApplicationEventsResolver,
   getApplicationsResolver,
+  returnToDraftResolver,
   simulateOfferResolver,
   submitApplicationForReviewResolver,
   updateApplicationResolver,
@@ -27,6 +28,10 @@ export const applicationsHandlers = [
   http.post<{ id: string }>(
     "/api/applications/:id/simulate-offer",
     simulateOfferResolver,
+  ),
+  http.post<{ id: string }>(
+    "/api/applications/:id/return-to-draft",
+    returnToDraftResolver,
   ),
   http.post<{ id: string }>(
     "/api/applications/:id/accept-alternative-offer",

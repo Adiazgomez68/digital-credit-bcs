@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
-import type { ApplicationState } from "@/types/store";
+import type { WizardStep as AnyWizardStep } from "@/routes/web";
 
-// The wizard has 5 steps in the store ("channel" included), but only the
-// last 4 are shown in this progress bar — channel selection has none.
-type WizardStep = Exclude<ApplicationState["step"], "channel">;
+// The wizard has 5 steps ("channel" included), but only the last 4 are
+// shown in this progress bar — channel selection has none.
+type WizardStep = Exclude<AnyWizardStep, "channel">;
 
 const STEPS: { key: WizardStep; label: string }[] = [
   { key: "basic_data", label: "Datos básicos" },

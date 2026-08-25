@@ -18,7 +18,6 @@ import { ChannelOptionCard } from "./option-card";
 export function ChannelForm() {
   const router = useRouter();
   const setChannel = useApplicationStore((store) => store.setChannel);
-  const goToStep = useApplicationStore((store) => store.goToStep);
 
   const form = useForm<ChannelValues>({
     resolver: zodResolver(channelSchema),
@@ -27,7 +26,6 @@ export function ChannelForm() {
 
   function onSubmit(values: ChannelValues) {
     setChannel(values.channel, values.advisorId);
-    goToStep("basic_data");
     router.push(WEB_ROUTES.CLIENT.CREDIT.BASIC_DATA);
   }
 

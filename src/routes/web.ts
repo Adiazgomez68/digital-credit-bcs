@@ -18,11 +18,11 @@ export const WEB_ROUTES = {
   },
 } as const;
 
-// Maps the store's navigation pointer to the route that renders it.
-export const STEP_ROUTES: Record<
-  "channel" | "basic_data" | "supplementary_data" | "simulation" | "summary",
-  string
-> = {
+export type WizardStep =
+  "channel" | "basic_data" | "supplementary_data" | "simulation" | "summary";
+
+// Maps a wizard step to the route that renders it.
+export const STEP_ROUTES: Record<WizardStep, string> = {
   channel: WEB_ROUTES.CLIENT.CREDIT.CHANNEL,
   basic_data: WEB_ROUTES.CLIENT.CREDIT.BASIC_DATA,
   supplementary_data: WEB_ROUTES.CLIENT.CREDIT.SUPPLEMENTARY_DATA,

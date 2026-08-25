@@ -1,9 +1,9 @@
 import { Header } from "@/components/layout/header";
 import { Stepper } from "@/components/shared/stepper";
 import { SaveAndExitProvider } from "@/components/wizard/save-and-exit-context";
-import type { ApplicationState } from "@/types/store";
+import type { WizardStep as AnyWizardStep } from "@/routes/web";
 
-type WizardStep = Exclude<ApplicationState["step"], "channel">;
+type WizardStep = Exclude<AnyWizardStep, "channel">;
 
 interface WizardStepShellProps {
   step: WizardStep;

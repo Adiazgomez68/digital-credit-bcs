@@ -6,6 +6,7 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `/applications/${id}`,
     SUBMIT_FOR_REVIEW: (id: string) => `/applications/${id}/submit-for-review`,
     SIMULATE_OFFER: (id: string) => `/applications/${id}/simulate-offer`,
+    RETURN_TO_DRAFT: (id: string) => `/applications/${id}/return-to-draft`,
     ACCEPT_ALTERNATIVE_OFFER: (id: string) =>
       `/applications/${id}/accept-alternative-offer`,
     FINALIZE: (id: string) => `/applications/${id}/finalize`,

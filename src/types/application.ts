@@ -28,7 +28,7 @@ export interface Application {
   loanPurpose?: string;
   privacyPolicy?: boolean;
   offer?: OfferSimulated;
-  lastRoute: string;
+  resumeRoute: string;
   correlationId: string;
   createdAt: string;
   updatedAt: string;
@@ -59,7 +59,7 @@ export type UpdateApplicationPayload = Partial<
     | "termMonths"
     | "loanPurpose"
     | "privacyPolicy"
-    | "lastRoute"
+    | "resumeRoute"
   >
 >;
 
@@ -88,6 +88,7 @@ export type ApplicationEventType =
   | "offer_simulated_success"
   | "offer_simulated_not_viable"
   | "offer_simulated_technical_error"
+  | "application_returned_to_draft"
   | "alternative_offer_accepted"
   | "application_finalized"
   | "application_abandoned";

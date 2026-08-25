@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import {
   AlertDialog,
@@ -13,13 +13,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useSaveAndExit } from "@/components/wizard/save-and-exit-context";
-import { useAbandonApplication } from "@/hooks/use-aplication";
+import {
+  useAbandonApplication,
+  useReturnToDraft,
+} from "@/hooks/use-aplication";
 import { useApplicationStore } from "@/providers/application-store-provider";
-import { STEP_ROUTES, WEB_ROUTES } from "@/routes/web";
-import type { ApplicationState } from "@/types/store";
+import { WEB_ROUTES, type WizardStep } from "@/routes/web";
+import { Button } from "../ui/button";
 
 interface WizardBackLinkProps {
-  step: ApplicationState["step"];
+  step: WizardStep;
   children: React.ReactNode;
 }
 
@@ -31,25 +34,32 @@ export function WizardBackLink({
   children,
 }: Readonly<WizardBackLinkProps>) {
   const router = useRouter();
-  const goToStep = useApplicationStore((store) => store.goToStep);
+  const applicationId = useApplicationStore((store) => store.id);
+  const { mutate, isPending } = useReturnToDraft();
 
-  // Going back to "channel" means leaving the actual wizard data behind —
-  // gate it behind a confirmation instead of silently dropping progress.
   if (step === "channel") {
     return <ExitToChannelConfirm>{children}</ExitToChannelConfirm>;
   }
 
+  const goToBack = () => {
+    mutate(applicationId!, {
+      onSuccess: () => {
+        router.replace(WEB_ROUTES.CLIENT.CREDIT.SUPPLEMENTARY_DATA);
+      },
+    });
+  };
+
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
+      loading={isPending}
+      disabled={isPending}
       className={BACK_LINK_CLASSNAME}
-      onClick={() => {
-        goToStep(step);
-        router.push(STEP_ROUTES[step]);
-      }}
+      onClick={goToBack}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
