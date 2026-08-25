@@ -24,7 +24,6 @@ export function Simulation() {
   const simulateMutation = useSimulateOffer();
   const hasTriggered = useRef(false);
 
-  // Render off the query cache, not simulateMutation.isPending/.data — more reliable across remounts.
   useEffect(() => {
     if (fetchedApplication?.status === "draft" && !hasTriggered.current) {
       hasTriggered.current = true;
@@ -33,7 +32,9 @@ export function Simulation() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchedApplication?.status, id]);
 
-  if (isLoadingApplication) {
+  const isSimulating = fetchedApplication?.status === "draft";
+
+  if (isLoadingApplication || isSimulating) {
     return <SimulationLoading />;
   }
 

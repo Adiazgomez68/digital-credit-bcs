@@ -28,8 +28,7 @@ import { WizardBackLink } from "@/components/wizard/back-link";
 import { useSaveAndExitRegistration } from "@/components/wizard/save-and-exit-context";
 import { useUpdateApplication } from "@/hooks/use-aplication";
 import { formatThousands, parseThousands } from "@/lib/format";
-import { useApplicationStore } from "@/providers/application-store-provider";
-import { STEP_ROUTES, WEB_ROUTES } from "@/routes/web";
+import { WEB_ROUTES } from "@/routes/web";
 import {
   LOAN_PURPOSES,
   supplementaryDataSchema,
@@ -46,7 +45,6 @@ export function SupplementaryDataForm({
   application,
 }: Readonly<SupplementaryDataFormProps>) {
   const router = useRouter();
-  const goToStep = useApplicationStore((store) => store.goToStep);
   const updateMutation = useUpdateApplication();
 
   const form = useForm<SupplementaryDataValues>({
@@ -89,13 +87,15 @@ export function SupplementaryDataForm({
     updateMutation.mutate(
       {
         id: application.id,
-        payload: { ...values, lastRoute: WEB_ROUTES.CLIENT.CREDIT.SIMULATION },
+        payload: {
+          ...values,
+          resumeRoute: WEB_ROUTES.CLIENT.CREDIT.SIMULATION,
+        },
         actor: "client",
       },
       {
         onSuccess: () => {
-          goToStep("simulation");
-          router.push(STEP_ROUTES.simulation);
+          router.push(WEB_ROUTES.CLIENT.CREDIT.SIMULATION);
         },
       },
     );

@@ -6,6 +6,7 @@ import {
   getApplication,
   getApplicationEvents,
   listApplications,
+  returnToDraft,
   simulateOffer,
   submitApplicationForReview,
   updateApplication,
@@ -100,6 +101,16 @@ export function useSimulateOffer() {
   return useMutation({
     mutationKey: ["simulate-offer"],
     mutationFn: (id: string) => simulateOffer(id),
+    onSuccess: (application) => sync(application),
+  });
+}
+
+export function useReturnToDraft() {
+  const sync = useSyncApplicationQueries();
+
+  return useMutation({
+    mutationKey: ["return-to-draft"],
+    mutationFn: (id: string) => returnToDraft(id),
     onSuccess: (application) => sync(application),
   });
 }

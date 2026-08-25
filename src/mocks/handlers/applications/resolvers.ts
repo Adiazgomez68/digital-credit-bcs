@@ -119,7 +119,7 @@ export async function createApplicationResolver({
     phone: payload.phone,
     email: payload.email,
     city: payload.city,
-    lastRoute: "/credit/supplementary-user-data",
+    resumeRoute: "/credit/supplementary-user-data",
     correlationId,
     createdAt: now,
     updatedAt: now,
@@ -254,7 +254,7 @@ export async function submitApplicationForReviewResolver({
   const correlationId = getCorrelationId(request, application);
   const updated = db.updateApplication(application.id, {
     status: "pending_validation",
-    lastRoute: "/credit/confirmation",
+    resumeRoute: "/credit/confirmation",
   });
   db.insertEvent(
     buildEvent(
@@ -276,6 +276,7 @@ export async function simulateOfferResolver({
   params: { id: string };
 }) {
   const application = db.findApplicationById(params.id);
+
   if (!application) {
     return HttpResponse.json(
       { message: "Solicitud no encontrada" },
@@ -340,13 +341,63 @@ export async function simulateOfferResolver({
   const updated = db.updateApplication(application.id, {
     status: nextStatus,
     offer,
-    lastRoute: isViable ? "/credit/summary" : application.lastRoute,
+    resumeRoute: isViable ? "/credit/summary" : application.resumeRoute,
   });
 
   db.insertEvent(
     buildEvent(
       application.id,
       isViable ? "offer_simulated_success" : "offer_simulated_not_viable",
+      "client",
+      correlationId,
+    ),
+  );
+
+  return HttpResponse.json(updated, { status: 200 });
+}
+
+export async function returnToDraftResolver({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { id: string };
+}) {
+  const application = db.findApplicationById(params.id);
+  if (!application) {
+    return HttpResponse.json(
+      { message: "Solicitud no encontrada" },
+      { status: 404 },
+    );
+  }
+
+  const actor = getActor(request);
+  const isValidated =
+    (application.status === "simulation_rejected" ||
+      application.status === "simulation_realized") &&
+    actor === "client";
+
+  if (!isValidated) {
+    return HttpResponse.json(
+      {
+        message:
+          "No se pudo actualizar el estado de la solicitud a borrador (draft)",
+      },
+      { status: 409 },
+    );
+  }
+
+  const correlationId = getCorrelationId(request, application);
+
+  const updated = db.updateApplication(application.id, {
+    status: "draft",
+    resumeRoute: "/credit/simulation",
+  });
+
+  db.insertEvent(
+    buildEvent(
+      application.id,
+      "application_returned_to_draft",
       "client",
       correlationId,
     ),
@@ -395,7 +446,7 @@ export async function acceptAlternativeOfferResolver({
       estimatedFee: alternativeOffer.estimatedFee,
       monthlyRate: MONTHLY_RATE,
     },
-    lastRoute: "/credit/summary",
+    resumeRoute: "/credit/summary",
   });
 
   db.insertEvent(
@@ -444,7 +495,7 @@ export async function finalizeApplicationResolver({
   const correlationId = getCorrelationId(request, application);
   const updated = db.updateApplication(application.id, {
     status: "finalized",
-    lastRoute: "/credit/confirmation",
+    resumeRoute: "/credit/confirmation",
   });
   db.insertEvent(
     buildEvent(

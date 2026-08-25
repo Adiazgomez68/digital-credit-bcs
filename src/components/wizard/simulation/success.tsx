@@ -1,13 +1,10 @@
-"use client";
-
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { WizardBackLink } from "@/components/wizard/back-link";
 import { formatCurrency } from "@/lib/format";
-import { useApplicationStore } from "@/providers/application-store-provider";
-import { STEP_ROUTES } from "@/routes/web";
+import { WEB_ROUTES } from "@/routes/web";
 import type { Application } from "@/types/application";
 
 interface SimulationSuccessProps {
@@ -18,12 +15,10 @@ export function SimulationSuccess({
   application,
 }: Readonly<SimulationSuccessProps>) {
   const router = useRouter();
-  const goToStep = useApplicationStore((store) => store.goToStep);
   const { offer, amountRequested, termMonths } = application;
 
   function handleContinue() {
-    goToStep("summary");
-    router.push(STEP_ROUTES.summary);
+    router.push(WEB_ROUTES.CLIENT.CREDIT.SUMMARY);
   }
 
   return (

@@ -26,7 +26,7 @@ function buildApplication(overrides: Partial<Application> = {}): Application {
     names: "Ana Test",
     phone: "3000000000",
     email: "ana@test.com",
-    lastRoute: "/credit/basic-user-data",
+    resumeRoute: "/credit/basic-user-data",
     correlationId: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
@@ -171,11 +171,11 @@ describe("db.updateApplication", () => {
 
     const result = db.updateApplication(application.id, {
       status: "finalized",
-      lastRoute: "/credit/basic-user-data",
+      resumeRoute: "/credit/basic-user-data",
     });
 
     expect(result?.status).toEqual("finalized");
-    expect(result?.lastRoute).toEqual("/credit/basic-user-data");
+    expect(result?.resumeRoute).toEqual("/credit/basic-user-data");
   });
 
   it("merges changes instead of replacing the whole record", () => {
