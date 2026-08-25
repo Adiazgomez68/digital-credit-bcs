@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import {
   useUpdateApplication,
 } from "@/hooks/use-aplication";
 import { useApplicationStore } from "@/providers/application-store-provider";
-import { STEP_ROUTES, WEB_ROUTES } from "@/routes/web";
+import { WEB_ROUTES } from "@/routes/web";
 import {
   basicDataSchema,
   CITY_OPTIONS,
@@ -50,7 +50,6 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
     (store) => store.setApplicationId,
   );
   const setChannel = useApplicationStore((store) => store.setChannel);
-  const goToStep = useApplicationStore((store) => store.goToStep);
   const createApplicationMutation = useCreateApplication();
   const updateApplicationMutation = useUpdateApplication();
 
@@ -106,8 +105,7 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
         },
         {
           onSuccess: () => {
-            goToStep("supplementary_data");
-            router.push(STEP_ROUTES.supplementary_data);
+            router.push(WEB_ROUTES.CLIENT.CREDIT.SUPPLEMENTARY_DATA);
           },
         },
       );
@@ -135,13 +133,11 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
           setChannel(created.channel, created.advisorId);
 
           if (isExistingDraft) {
-            goToStep("supplementary_data");
-            router.push(`${created.lastRoute}?resumed=1`);
+            router.push(`${created.resumeRoute}?resumed=1`);
             return;
           }
 
-          goToStep("supplementary_data");
-          router.push(STEP_ROUTES.supplementary_data);
+          router.push(WEB_ROUTES.CLIENT.CREDIT.SUPPLEMENTARY_DATA);
         },
       },
     );
@@ -282,7 +278,7 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
                       {...field}
                       id={field.name}
                       type="email"
-                      placeholder="nombre@correo.com"
+                      placeholder="example@correo.com"
                       aria-invalid={fieldState.invalid}
                     />
 

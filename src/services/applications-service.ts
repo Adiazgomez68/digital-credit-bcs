@@ -85,6 +85,18 @@ export async function simulateOffer(id: string) {
   return data;
 }
 
+export async function returnToDraft(id: string) {
+  await delay(500);
+
+  const { data } = await apiClient.post<Application>(
+    ENDPOINTS.APPLICATIONS.RETURN_TO_DRAFT(id),
+    undefined,
+    { correlationId: generateCorrelationId(), actor: "client" },
+  );
+
+  return data;
+}
+
 export async function acceptAlternativeOffer(id: string) {
   await delay(500);
 

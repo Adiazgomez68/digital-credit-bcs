@@ -11,25 +11,44 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAbandonApplication } from "@/hooks/use-aplication";
+import {
+  useAbandonApplication,
+  useFetchApplicationById,
+} from "@/hooks/use-aplication";
 import {
   useApplicationStore,
   useApplicationStoreHasHydrated,
 } from "@/providers/application-store-provider";
-import { STEP_ROUTES } from "@/routes/web";
+import type { ApplicationStatus } from "@/types/application";
+
+// Statuses where there's still something for the client to continue —
+// terminal/advisor-owned statuses shouldn't prompt to "resume" anything.
+const RESUMABLE_STATUSES = new Set<ApplicationStatus>([
+  "draft",
+  "simulation_realized",
+  "simulation_rejected",
+]);
 
 export function ResumePrompt() {
   const router = useRouter();
   const id = useApplicationStore((store) => store.id);
-  const step = useApplicationStore((store) => store.step);
   const hasHydrated = useApplicationStoreHasHydrated();
   const resetStore = useApplicationStore((store) => store.reset);
   const abandonMutation = useAbandonApplication();
 
-  const shouldPrompt = hasHydrated && !!id && step !== "channel";
+  const { data: application, isPending: isLoadingApplication } =
+    useFetchApplicationById(id!);
+
+  const shouldPrompt =
+    hasHydrated &&
+    !!id &&
+    !isLoadingApplication &&
+    !!application &&
+    RESUMABLE_STATUSES.has(application.status);
 
   function handleContinue() {
-    router.push(STEP_ROUTES[step]);
+    if (!application) return;
+    router.push(application.resumeRoute);
   }
 
   function handleStartOver() {
@@ -39,9 +58,6 @@ export function ResumePrompt() {
         payload: { reason: "Inició una nueva solicitud" },
         actor: "client",
       },
-      // The goal here is clearing the local pointer, regardless of whether
-      // the server-side draft could still be marked abandoned (e.g. it may
-      // no longer exist there at all).
       { onSettled: () => resetStore() },
     );
   }
