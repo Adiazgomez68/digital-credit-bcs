@@ -92,7 +92,7 @@ export function AlternativeOfferCard({
           loading={abandonMutation.isPending}
           className="flex-1"
         >
-          No, gracias
+          Rechazar oferta
         </Button>
       </div>
     </div>

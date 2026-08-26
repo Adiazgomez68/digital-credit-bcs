@@ -17,13 +17,15 @@ import {
   useAbandonApplication,
   useReturnToDraft,
 } from "@/hooks/use-aplication";
+import { cn } from "@/lib/utils";
 import { useApplicationStore } from "@/providers/application-store-provider";
-import { WEB_ROUTES, type WizardStep } from "@/routes/web";
+import { STEP_ROUTES, WEB_ROUTES, type WizardStep } from "@/routes/web";
 import { Button } from "../ui/button";
 
 interface WizardBackLinkProps {
   step: WizardStep;
   children: React.ReactNode;
+  className?: string;
 }
 
 const BACK_LINK_CLASSNAME =
@@ -32,6 +34,7 @@ const BACK_LINK_CLASSNAME =
 export function WizardBackLink({
   step,
   children,
+  className,
 }: Readonly<WizardBackLinkProps>) {
   const router = useRouter();
   const applicationId = useApplicationStore((store) => store.id);
@@ -42,9 +45,14 @@ export function WizardBackLink({
   }
 
   const goToBack = () => {
+    if (step !== "supplementary_data") {
+      router.push(STEP_ROUTES[step]);
+      return;
+    }
+
     mutate(applicationId!, {
       onSuccess: () => {
-        router.replace(WEB_ROUTES.CLIENT.CREDIT.SUPPLEMENTARY_DATA);
+        router.replace(STEP_ROUTES[step]);
       },
     });
   };
@@ -55,7 +63,7 @@ export function WizardBackLink({
       variant="link"
       loading={isPending}
       disabled={isPending}
-      className={BACK_LINK_CLASSNAME}
+      className={cn(BACK_LINK_CLASSNAME, className)}
       onClick={goToBack}
     >
       {children}

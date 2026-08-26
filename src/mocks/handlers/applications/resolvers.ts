@@ -372,12 +372,26 @@ export async function returnToDraftResolver({
   }
 
   const actor = getActor(request);
-  const isValidated =
-    (application.status === "simulation_rejected" ||
-      application.status === "simulation_realized") &&
-    actor === "client";
 
-  if (!isValidated) {
+  if (actor !== "client") {
+    return HttpResponse.json(
+      {
+        message:
+          "No se pudo actualizar el estado de la solicitud a borrador (draft)",
+      },
+      { status: 409 },
+    );
+  }
+
+  // Already draft (e.g. simulate-offer errored before ever leaving draft) — nothing to do.
+  if (application.status === "draft") {
+    return HttpResponse.json(application, { status: 200 });
+  }
+
+  if (
+    application.status !== "simulation_rejected" &&
+    application.status !== "simulation_realized"
+  ) {
     return HttpResponse.json(
       {
         message:
@@ -392,6 +406,7 @@ export async function returnToDraftResolver({
   const updated = db.updateApplication(application.id, {
     status: "draft",
     resumeRoute: "/credit/simulation",
+    offer: undefined,
   });
 
   db.insertEvent(

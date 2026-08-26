@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   useFetchApplicationById,
@@ -21,18 +21,31 @@ export function Simulation() {
     isPending: isLoadingApplication,
     isError: isLoadError,
   } = useFetchApplicationById(id!);
-  const simulateMutation = useSimulateOffer();
   const hasTriggered = useRef(false);
+  const [hasSimulationError, setHasSimulationError] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const simulateMutation = useSimulateOffer({
+    onError: () => setHasSimulationError(true),
+    onSettled: () => setIsRetrying(false),
+  });
+
+  function runSimulation() {
+    setHasSimulationError(false);
+    setIsRetrying(true);
+    simulateMutation.mutate(id!);
+  }
 
   useEffect(() => {
     if (fetchedApplication?.status === "draft" && !hasTriggered.current) {
       hasTriggered.current = true;
-      simulateMutation.mutate(id!);
+      runSimulation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchedApplication?.status, id]);
 
-  const isSimulating = fetchedApplication?.status === "draft";
+  const isSimulating =
+    fetchedApplication?.status === "draft" && !hasSimulationError;
 
   if (isLoadingApplication || isSimulating) {
     return <SimulationLoading />;
@@ -52,13 +65,8 @@ export function Simulation() {
     return <SimulationNotViable application={fetchedApplication} />;
   }
 
-  if (simulateMutation.isError) {
-    return (
-      <SimulationError
-        onRetry={() => simulateMutation.mutate(id!)}
-        isRetrying={simulateMutation.isPending}
-      />
-    );
+  if (hasSimulationError) {
+    return <SimulationError onRetry={runSimulation} isRetrying={isRetrying} />;
   }
 
   return <SimulationLoading />;
