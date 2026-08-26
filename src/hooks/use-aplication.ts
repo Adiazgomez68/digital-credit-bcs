@@ -95,13 +95,18 @@ export function useSubmitApplicationForReview() {
   });
 }
 
-export function useSimulateOffer() {
+export function useSimulateOffer(options?: {
+  onError?: () => void;
+  onSettled?: () => void;
+}) {
   const sync = useSyncApplicationQueries();
 
   return useMutation({
     mutationKey: ["simulate-offer"],
     mutationFn: (id: string) => simulateOffer(id),
     onSuccess: (application) => sync(application),
+    onError: options?.onError,
+    onSettled: options?.onSettled,
   });
 }
 

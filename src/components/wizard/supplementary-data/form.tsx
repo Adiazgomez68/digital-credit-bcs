@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ export function SupplementaryDataForm({
       income: application.income ?? 0,
       expenses: application.expenses ?? 0,
       amountRequested: application.amountRequested ?? 0,
-      termMonths: application.termMonths ?? TERM_OPTIONS_MONTHS[1],
+      termMonths: application.termMonths ?? TERM_OPTIONS_MONTHS[0],
       loanPurpose:
         (application.loanPurpose as (typeof LOAN_PURPOSES)[number]) ??
         LOAN_PURPOSES[0],
@@ -244,6 +244,7 @@ export function SupplementaryDataForm({
                           {(value: string) => `${value} meses`}
                         </SelectValue>
                       </SelectTrigger>
+
                       <SelectContent>
                         {TERM_OPTIONS_MONTHS.map((months) => (
                           <SelectItem key={months} value={String(months)}>
@@ -274,6 +275,7 @@ export function SupplementaryDataForm({
                     <SelectTrigger id={field.name}>
                       <SelectValue />
                     </SelectTrigger>
+
                     <SelectContent>
                       {LOAN_PURPOSES.map((purpose) => (
                         <SelectItem key={purpose} value={purpose}>
