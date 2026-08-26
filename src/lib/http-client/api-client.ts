@@ -38,11 +38,11 @@ async function request<T>(
   const signal = buildRequestSignal(timeoutMs, callerSignal ?? undefined);
   const body = data !== undefined ? JSON.stringify(data) : undefined;
 
-  await ensureMockingReady();
-
   const startedAt = performance.now();
 
   try {
+    await ensureMockingReady();
+
     const response = await executeFetch(
       url,
       { ...restOptions, method, headers, body, signal },

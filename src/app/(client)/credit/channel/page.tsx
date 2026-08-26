@@ -11,7 +11,7 @@ export default function ChannelPage() {
 
       <ResumePrompt />
 
-      <View size="narrow" className="max-w-190 py-16">
+      <View size="narrow" className="max-w-190 py-16 fade-in animate-in">
         <span className="mb-2.5 block text-xs font-semibold tracking-wide text-primary uppercase">
           Paso previo
         </span>

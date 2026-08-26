@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import {
   useApplicationStore,
@@ -17,9 +17,13 @@ export function RequireDraft({
   const router = useRouter();
   const id = useApplicationStore((store) => store.id);
   const hasHydrated = useApplicationStoreHasHydrated();
+  const hasCheckedOnce = useRef(false);
 
   useEffect(() => {
-    if (hasHydrated && !id) router.replace(WEB_ROUTES.CLIENT.CREDIT.CHANNEL);
+    if (!hasHydrated || hasCheckedOnce.current) return;
+    hasCheckedOnce.current = true;
+
+    if (!id) router.replace(WEB_ROUTES.CLIENT.CREDIT.CHANNEL);
   }, [hasHydrated, id, router]);
 
   if (!hasHydrated) return <DataLoadingSkeleton />;

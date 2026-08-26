@@ -14,7 +14,6 @@ export default function SupplementaryUserDataPage() {
   return (
     <RequireDraft>
       <WizardStepShell
-        step="supplementary_data"
         headerContent={
           <>
             <SaveAndExitLink />
@@ -23,9 +22,12 @@ export default function SupplementaryUserDataPage() {
           </>
         }
       >
-        <View size="narrow" className="max-w-160 py-12 pb-20">
+        <View
+          size="narrow"
+          className="max-w-160 py-12 pb-20 fade-in animate-in"
+        >
           <Heading level={1} className="mb-1.5 text-2xl">
-            Cuéntanos tu necesidad
+            Cuéntanos tu situación financiera
           </Heading>
 
           <p className="mb-8 text-sm text-muted-foreground">

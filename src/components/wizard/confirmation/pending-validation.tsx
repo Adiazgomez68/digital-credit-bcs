@@ -33,7 +33,7 @@ export function ConfirmationPendingValidation({
       nextSteps={[
         "Tu asesor y el equipo de crédito validarán la información frente a nuestras políticas.",
         "Te contactaremos por correo o celular si necesitamos algún dato adicional.",
-        'Verás el cambio a "Finalizada" reflejado en el detalle de tu solicitud, con el evento registrado en la trazabilidad.',
+        'Verás el cambio a "Finalizada" reflejado en el detalle de tu solicitud.',
       ]}
     />
   );
