@@ -1,25 +1,22 @@
 import { setupWorker } from "msw/browser";
+
+import { ApiError } from "@/lib/http-client/api-error";
+
 import { handlers } from "./handlers";
 
 export const worker = setupWorker(...handlers);
 
 let readyPromise: Promise<void> | null = null;
 
-const RELOAD_GUARD_KEY = "msw-controller-reload-guard";
+const RELOAD_GUARD_KEY = "msw-controller-reload-attempts";
+const MAX_RELOAD_ATTEMPTS = 3;
+const CONTROLLER_WAIT_MS = 2_000;
 
-// worker.start() can resolve while the SW still isn't this page's controller, silently bypassing mocks.
-async function ensureController(): Promise<void> {
-  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
-    return;
-  }
+function waitForController(): Promise<boolean> {
+  if (navigator.serviceWorker.controller) return Promise.resolve(true);
 
-  if (navigator.serviceWorker.controller) {
-    sessionStorage.removeItem(RELOAD_GUARD_KEY);
-    return;
-  }
-
-  const controlled = await new Promise<boolean>((resolve) => {
-    const timer = setTimeout(() => resolve(false), 2_000);
+  return new Promise<boolean>((resolve) => {
+    const timer = setTimeout(() => resolve(false), CONTROLLER_WAIT_MS);
     navigator.serviceWorker.addEventListener(
       "controllerchange",
       () => {
@@ -29,17 +26,33 @@ async function ensureController(): Promise<void> {
       { once: true },
     );
   });
+}
 
-  if (controlled) {
+// Retries a few reloads for a slow-to-activate SW instead of silently leaving requests unmocked.
+async function ensureController(): Promise<void> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+    return;
+  }
+
+  if (await waitForController()) {
     sessionStorage.removeItem(RELOAD_GUARD_KEY);
     return;
   }
 
-  // One retry per session, to avoid a reload loop.
-  if (sessionStorage.getItem(RELOAD_GUARD_KEY)) return;
-  sessionStorage.setItem(RELOAD_GUARD_KEY, "1");
-  location.reload();
-  await new Promise<void>(() => {});
+  const attempts = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) ?? "0");
+  if (attempts < MAX_RELOAD_ATTEMPTS) {
+    sessionStorage.setItem(RELOAD_GUARD_KEY, String(attempts + 1));
+    location.reload();
+    await new Promise<void>(() => {});
+  }
+
+  sessionStorage.removeItem(RELOAD_GUARD_KEY);
+  throw new ApiError(
+    "No se pudo activar el entorno de simulación. Recarga la página.",
+    0,
+    undefined,
+    "network",
+  );
 }
 
 // Starts the MSW worker once; every caller awaits the same cached promise.

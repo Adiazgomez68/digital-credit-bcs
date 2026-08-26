@@ -89,7 +89,7 @@ export function AbandonReasonForm({
                 {ABANDON_REASONS.map((label, index) => (
                   <label
                     key={label}
-                    className="flex cursor-pointer items-center gap-3 border-b border-border py-3 last:border-b-0"
+                    className="flex cursor-pointer items-center gap-3 py-1.5"
                   >
                     <RadioGroupItem value={index} />
                     <span className="text-sm">{label}</span>

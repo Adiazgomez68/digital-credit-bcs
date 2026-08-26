@@ -50,9 +50,9 @@ export function SupplementaryDataForm({
   const form = useForm<SupplementaryDataValues>({
     resolver: zodResolver(supplementaryDataSchema),
     values: {
-      income: application.income ?? 0,
-      expenses: application.expenses ?? 0,
-      amountRequested: application.amountRequested ?? 0,
+      income: application.income ?? Number.NaN,
+      expenses: application.expenses ?? Number.NaN,
+      amountRequested: application.amountRequested ?? Number.NaN,
       termMonths: application.termMonths ?? TERM_OPTIONS_MONTHS[0],
       loanPurpose:
         (application.loanPurpose as (typeof LOAN_PURPOSES)[number]) ??

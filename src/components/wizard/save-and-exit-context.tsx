@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 
@@ -30,18 +31,15 @@ export function SaveAndExitProvider({
     saveFnRef.current?.();
   }, []);
 
+  const values = useMemo(() => ({ register, save }), [register, save]);
+
   return (
-    <SaveAndExitContext.Provider value={{ register, save }}>
+    <SaveAndExitContext.Provider value={values}>
       {children}
     </SaveAndExitContext.Provider>
   );
 }
 
-// Lets the form currently mounted for a wizard step offer a best-effort
-// partial save, triggered when the user clicks "Guardar y salir" instead of
-// completing the step. Steps with nothing to save (e.g. Datos básicos before
-// the application exists) simply never call this, so the link falls back to
-// its default behavior of just navigating away.
 export function useSaveAndExitRegistration(fn: SaveFn) {
   const context = useContext(SaveAndExitContext);
 

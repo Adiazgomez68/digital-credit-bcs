@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useApplicationStore } from "@/providers/application-store-provider";
 import { STEP_ROUTES, WEB_ROUTES, type WizardStep } from "@/routes/web";
+import { XIcon } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface WizardBackLinkProps {
@@ -75,11 +76,13 @@ function ExitToChannelConfirm({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const abandonMutation = useAbandonApplication();
   const id = useApplicationStore((store) => store.id);
   const resetStore = useApplicationStore((store) => store.reset);
+
   const saveOnExit = useSaveAndExit();
-  const abandonMutation = useAbandonApplication();
+
+  const [open, setOpen] = useState(false);
 
   function handleSaveAndExit() {
     saveOnExit();
@@ -122,19 +125,32 @@ function ExitToChannelConfirm({
       </button>
 
       <AlertDialogContent>
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          className="absolute right-3 top-3"
+          onClick={() => setOpen(false)}
+        >
+          <XIcon />
+        </Button>
+
         <AlertDialogHeader>
           <AlertDialogTitle>¿Quieres abandonar el proceso?</AlertDialogTitle>
 
           <AlertDialogDescription>
-            Volver te saca de tu solicitud. Puedes guardar tu progreso y
-            continuar después, o abandonar el proceso.
+            {id
+              ? "Volver te saca de tu solicitud. Puedes guardar tu progreso y continuar después, o abandonar el proceso."
+              : "Volver te sacará de tu solicitud y los datos que hayas ingresado no serán guardados."}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogAction variant="outline" onClick={handleSaveAndExit}>
-            Guardar y salir
-          </AlertDialogAction>
+          {id && (
+            <AlertDialogAction variant="outline" onClick={handleSaveAndExit}>
+              Guardar y salir
+            </AlertDialogAction>
+          )}
 
           <AlertDialogAction
             variant="destructive"

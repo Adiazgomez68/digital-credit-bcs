@@ -18,6 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistMono.variable} h-full scroll-smooth scroll-pt-24 antialiased`}
     >
       <TanstackProvider>

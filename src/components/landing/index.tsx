@@ -8,7 +8,7 @@ import { TrustStats } from "./trust-stats";
 
 export function LandingView() {
   return (
-    <>
+    <div className="fade-in animate-in">
       <Hero />
       <TrustStats />
       <Benefits />
@@ -16,6 +16,6 @@ export function LandingView() {
       <HowItWorks />
       <Faq />
       <CtaBand />
-    </>
+    </div>
   );
 }

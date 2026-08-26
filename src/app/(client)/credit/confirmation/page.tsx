@@ -8,7 +8,7 @@ export default function ConfirmationPage() {
     <RequireDraft>
       <Header />
 
-      <View size="narrow" className="max-w-140 py-20">
+      <View size="narrow" className="max-w-140 py-20 fade-in animate-in">
         <Confirmation />
       </View>
     </RequireDraft>
