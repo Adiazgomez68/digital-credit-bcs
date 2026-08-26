@@ -2,12 +2,14 @@
 
 import { useApplicationStore } from "@/providers/application-store-provider";
 
+import { useFetchApplicationById } from "@/hooks/use-aplication";
 import { AbandonAction } from "./abandon";
 
 export function CurrentAbandonTrigger() {
   const id = useApplicationStore((store) => store.id);
+  const application = useFetchApplicationById(id!);
 
-  if (!id) return null;
+  if (!id || !application.data) return null;
 
   return (
     <AbandonAction

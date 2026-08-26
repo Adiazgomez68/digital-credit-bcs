@@ -35,7 +35,10 @@ export function SimulatorForm({
   onSubmit,
 }: Readonly<SimulatorFormProps>) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-5 animate-in fade-in"
+    >
       <FieldGroup>
         <Controller
           control={control}

@@ -71,7 +71,6 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
     },
   });
 
-  // Partial save for "Guardar y salir" — only meaningful once the application exists.
   const saveOnExit = useCallback(() => {
     if (!application) return;
     const values = form.getValues();
@@ -156,7 +155,7 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
       <Card>
         <CardContent>
           <FieldGroup>
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-[1fr_1.4fr]">
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <Controller
                 control={form.control}
                 name="documentType"
@@ -242,6 +241,35 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
               )}
             />
 
+            <Controller
+              control={form.control}
+              name="email"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>
+                    Correo electrónico *
+                  </FieldLabel>
+
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="email"
+                    placeholder="example@correo.com"
+                    aria-invalid={fieldState.invalid}
+                  />
+
+                  {fieldState.invalid ? (
+                    <FieldError errors={[fieldState.error]} />
+                  ) : (
+                    <FieldDescription>
+                      Aquí enviaremos el resumen y las notificaciones de tu
+                      solicitud.
+                    </FieldDescription>
+                  )}
+                </Field>
+              )}
+            />
+
             <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <Controller
                 control={form.control}
@@ -267,58 +295,29 @@ export function BasicDataForm({ application }: Readonly<BasicDataFormProps>) {
 
               <Controller
                 control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
+                name="city"
+                render={({ field }) => (
+                  <Field>
                     <FieldLabel htmlFor={field.name}>
-                      Correo electrónico *
+                      Ciudad de residencia
                     </FieldLabel>
 
-                    <Input
-                      {...field}
-                      id={field.name}
-                      type="email"
-                      placeholder="example@correo.com"
-                      aria-invalid={fieldState.invalid}
-                    />
-
-                    {fieldState.invalid ? (
-                      <FieldError errors={[fieldState.error]} />
-                    ) : (
-                      <FieldDescription>
-                        Aquí enviaremos el resumen y las notificaciones de tu
-                        solicitud.
-                      </FieldDescription>
-                    )}
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id={field.name}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CITY_OPTIONS.map((city) => (
+                          <SelectItem key={city} value={city}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 )}
               />
             </div>
-
-            <Controller
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor={field.name}>
-                    Ciudad de residencia
-                  </FieldLabel>
-
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id={field.name}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CITY_OPTIONS.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
           </FieldGroup>
         </CardContent>
       </Card>

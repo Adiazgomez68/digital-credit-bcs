@@ -10,7 +10,7 @@ interface SummaryProps {
 
 export function Summary({ result, onRecalculate }: Readonly<SummaryProps>) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 animate-in fade-in">
       <div>
         <div className="text-2xl font-semibold text-primary">
           {formatCurrency(result.amount)}

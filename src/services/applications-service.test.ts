@@ -1,4 +1,5 @@
-import { ApiError } from "@/lib/http-client";
+import { apiClient, ApiError, generateCorrelationId } from "@/lib/http-client";
+import { ENDPOINTS } from "@/routes/endpoints";
 import {
   abandonApplication,
   createApplication,
@@ -6,11 +7,15 @@ import {
   getApplication,
   getApplicationEvents,
   listApplications,
+  returnToDraft,
   simulateOffer,
   submitApplicationForReview,
   updateApplication,
 } from "@/services/applications-service";
-import type { CreateApplicationPayload } from "@/types/application";
+import type {
+  Application,
+  CreateApplicationPayload,
+} from "@/types/application";
 import { describe, expect, it } from "vitest";
 
 function buildPayload(
@@ -108,6 +113,86 @@ describe("simulateOffer", () => {
     await expect(simulateOffer(application.id)).rejects.toMatchObject({
       status: 503,
     });
+  });
+});
+
+describe("returnToDraft", () => {
+  it("returns a viable simulation back to draft, clearing the offer", async () => {
+    const { application } = await createApplication(buildPayload());
+    await updateApplication(application.id, VIABLE_FINANCIALS, "client");
+    await simulateOffer(application.id);
+
+    const result = await returnToDraft(application.id);
+
+    expect(result.status).toBe("draft");
+    expect(result.resumeRoute).toBe("/credit/simulation");
+    expect(result.offer).toBeUndefined();
+  });
+
+  it("returns a not-viable simulation back to draft", async () => {
+    const { application } = await createApplication(buildPayload());
+    await updateApplication(
+      application.id,
+      {
+        income: 1_000_000,
+        expenses: 900_000,
+        amountRequested: 50_000_000,
+        termMonths: 12,
+      },
+      "client",
+    );
+    await simulateOffer(application.id);
+
+    const result = await returnToDraft(application.id);
+
+    expect(result.status).toBe("draft");
+    expect(result.offer).toBeUndefined();
+  });
+
+  it("is a no-op when the application never left draft (eg. after a technical-error simulation)", async () => {
+    const { application } = await createApplication(buildPayload());
+    await updateApplication(
+      application.id,
+      { ...VIABLE_FINANCIALS, amountRequested: 999_999_999 },
+      "client",
+    );
+    await expect(simulateOffer(application.id)).rejects.toMatchObject({
+      status: 503,
+    });
+
+    const result = await returnToDraft(application.id);
+
+    expect(result.status).toBe("draft");
+  });
+
+  it("rejects returning to draft from a status other than draft/simulated", async () => {
+    const { application } = await createApplication(buildPayload());
+    await abandonApplication(
+      application.id,
+      { reason: "El cliente ya no está interesado" },
+      "client",
+    );
+
+    await expect(returnToDraft(application.id)).rejects.toMatchObject({
+      status: 409,
+    });
+  });
+
+  it("rejects when the caller isn't the client (advisor gate)", async () => {
+    const { application } = await createApplication(
+      buildPayload({ channel: "assisted" }),
+    );
+    await updateApplication(application.id, VIABLE_FINANCIALS, "client");
+    await simulateOffer(application.id);
+
+    const promise = apiClient.post<Application>(
+      ENDPOINTS.APPLICATIONS.RETURN_TO_DRAFT(application.id),
+      undefined,
+      { correlationId: generateCorrelationId(), actor: "advisor" },
+    );
+
+    await expect(promise).rejects.toBeInstanceOf(ApiError);
+    await expect(promise).rejects.toMatchObject({ status: 409 });
   });
 });
 
